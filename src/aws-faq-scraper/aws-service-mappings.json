@@ -1,0 +1,5 @@
+{
+    "EC2":      "https://aws.amazon.com/ec2/faqs/",
+    "S3":       "https://aws.amazon.com/s3/faqs/",
+    "Polly":    "https://aws.amazon.com/polly/faqs/"
+}
