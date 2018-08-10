@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Ninject;
 using Amazon.Lambda.Core;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -11,25 +11,18 @@ namespace Aws.Faq.Scraper
 {
     public class Function
     {
-        private readonly IFaqScraper _scraper;
-        private readonly IFaqResolver _resolver;
-        private readonly IFaqPersister _persister;
+        private readonly IKernel _kernel = new StandardKernel(new ScraperModule());
         private readonly EntryPoint _entryPoint;
 
         public Function()
         {
-            _resolver = new HttpsFaqResolver();
-            _scraper = new FaqScraper(_resolver);
-            _persister = new DynamoDBFaqPersister();
-            _entryPoint = new EntryPoint(_scraper, _resolver, _persister);
-
+            _entryPoint = _kernel.Get<EntryPoint>();
         }
         
-        public async Task<String> FunctionHandler(string input, ILambdaContext context)
+        public async Task FunctionHandler(string awsServiceType, ILambdaContext context)
         {
-            await _entryPoint.GetFaq(AwsServiceTypes.EC2);
-
-            return "success";
+            var service = Enum.Parse<AwsServiceTypes>(awsServiceType);
+            await _entryPoint.GetFaq(service);
         }
     }
 }
